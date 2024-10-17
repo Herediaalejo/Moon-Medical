@@ -1,0 +1,22 @@
+.error {
+    width: 100%;
+    font-size: .8rem;
+    font-weight: bold;
+    color: white; /* Texto blanco para contraste */
+    background-color: rgba(255, 0, 0, 0.8); /* Fondo rojo con un poco de transparencia */
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.title{
+    font-size: 56px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.description{
+    font-size: 28px;
+    margin: 0;
+}

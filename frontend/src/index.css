@@ -1,0 +1,25 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", "Lato", sans-serif;
+}
+
+@media (min-width: 1450px) or (min-height: 600px) {
+  html {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 1450px) or (max-height: 600px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+#root {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
