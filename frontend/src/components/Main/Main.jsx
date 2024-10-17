@@ -1,8 +1,7 @@
 import { Outlet } from "react-router-dom";
-import NavBar from "../../components/NavBar/NavBar";
-import styles from "./Main.module.css";
 import { createContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import NavBar from "../NavBar/NavBar";
 
 export const AuthContext = createContext();
 const Main = () => {

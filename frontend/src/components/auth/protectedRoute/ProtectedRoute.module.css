@@ -1,0 +1,9 @@
+.unauthorized {
+  display: flex;
+  font-family: "Poppins";
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 70%;
+  font-size: 50px;
+}

@@ -7,6 +7,9 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Error404 from "../pages/Error404/Error404";
 import Recovery from "../pages/Recovery/Recovery";
+import ProtectedRoute from "../components/auth/protectedRoute/ProtectedRoute";
+import Main from "../components/Main/Main";
+import Home from "../pages/Home/Home";
 
 const router = createBrowserRouter([
   {
@@ -33,28 +36,26 @@ const router = createBrowserRouter([
         path: "recuperar-cuenta",
         element: <Recovery />,
       },
+      {
+        path: "app",
+        element: (
+          <ProtectedRoute>
+            <Main />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="home" />, // Redirección a /gerente/empleados
+          },
+          {
+            path: "home",
+            element: <Home />,
+          },
+        ],
+      },
     ],
   },
-  /* ,
-  {
-    path: "/villa-medical",
-    element: (
-      <ProtectedRoute>
-        <Main />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <Navigate to="home" />, // Redirección a /gerente/empleados
-      },
-      {
-        path: "home",
-        element: <Home />,
-      },
-    ],
-  }, */
-  ,
 ]);
 
 const MyRoutes = () => <RouterProvider router={router} />;

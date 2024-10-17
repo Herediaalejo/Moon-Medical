@@ -5,6 +5,39 @@
   font-family: "Poppins", "Lato", sans-serif;
 }
 
+.button {
+  min-width: 8rem;
+  min-height: 2.2rem;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.7rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.5s ease all;
+  font-weight: 500;
+}
+
+.button:hover {
+  transform: scale(1.1);
+}
+
+.green {
+  background-color: #2ecc71;
+}
+
+.green:hover {
+  background-color: #b7ffb7;
+}
+
+.lightblue {
+  background-color: #a0dbeb;
+}
+
+.lightblue:hover {
+  background-color: #cef4ff;
+}
+
 @media (min-width: 1450px) or (min-height: 600px) {
   html {
     font-size: 22px;

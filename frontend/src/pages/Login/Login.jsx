@@ -61,7 +61,7 @@ function Login() {
       localStorage.removeItem("authToken");
       localStorage.setItem("authToken", access_token);
 
-      navigate("/moon-medical/home");
+      navigate("/moon-medical/app/home");
     } catch (error) {
       mostrarError(error.message);
     }

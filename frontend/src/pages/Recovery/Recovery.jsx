@@ -79,7 +79,7 @@ function Recovery() {
         throw new Error("Error al cambiar la contraseña");
       }
 
-      navigate("moon-medical/login", {
+      navigate("/moon-medical/login", {
         state: {
           message: "Contraseña actualizada con exito",
           messageType: "success",
