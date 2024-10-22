@@ -5,6 +5,10 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { Usuario } from './usuarios/entities/usuario.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { Doctor } from './usuarios/entities/doctor.entity';
+import { EspecialidadMedica } from './usuarios/entities/especialidad_medica.entity';
+import { CitaMedicaModule } from './cita-medica/cita-medica.module';
+import { CitaMedica } from './cita-medica/entities/cita-medica.entity';
 
 @Module({
   imports: [
@@ -15,10 +19,11 @@ import { AuthModule } from './auth/auth.module';
       port: 3306,
       username: 'root',
       database: 'moonmedical',
-      entities: [Usuario],
+      entities: [Usuario, Doctor, EspecialidadMedica, CitaMedica],
     }),
     UsuariosModule,
     AuthModule,
+    CitaMedicaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -13,10 +13,8 @@ export class AuthService {
 
   async login(nombre_usuario: string, contrasena: string) {
     try {
-      console.log(nombre_usuario, contrasena);
       // Busca el usuario por nombre de usuario
       const user = await this.usersService.findOneByUsername(nombre_usuario);
-      console.log(user);
 
       if (user && user instanceof Usuario) {
         // Compara la contraseña proporcionada con la almacenada
@@ -26,7 +24,6 @@ export class AuthService {
         );
 
         if (match) {
-          console.log(match);
           // Crea el payload si la contraseña coincide
           const payload: JwtPayload = {
             sub: user.id_usuario,

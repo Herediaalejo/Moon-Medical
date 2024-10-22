@@ -10,6 +10,9 @@ import Recovery from "../pages/Recovery/Recovery";
 import ProtectedRoute from "../components/auth/protectedRoute/ProtectedRoute";
 import Main from "../components/Main/Main";
 import Home from "../pages/Home/Home";
+import AppointmentRegister from "../pages/AppointmentRegister/AppointmentRegister";
+import DoctorRegister from "../pages/DoctorRegister/DoctorRegister";
+import Schedule from "../pages/Schedule/Schedule";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +54,18 @@ const router = createBrowserRouter([
           {
             path: "home",
             element: <Home />,
+          },
+          {
+            path: "agendar-cita",
+            element: <AppointmentRegister />,
+          },
+          {
+            path: "registrar-doctor",
+            element: <DoctorRegister />,
+          },
+          {
+            path: "mi-agenda",
+            element: <Schedule />,
           },
         ],
       },

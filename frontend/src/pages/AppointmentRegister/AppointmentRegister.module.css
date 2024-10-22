@@ -1,0 +1,304 @@
+.container {
+  height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.buttonContainer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0 0.4rem;
+}
+
+.buttonContainer .selectButton {
+  margin: 0;
+}
+
+.selectedDate {
+  background-color: #e5e5e5;
+  padding: 0.4rem 1rem;
+  border-radius: 0.4rem;
+  font-weight: 500;
+}
+
+.item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-weight: 400;
+}
+
+.item select {
+  padding: 0.4rem 1rem;
+  border-radius: 0.4rem;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.timeItem {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.availableDay::before {
+  width: 90%;
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: inline-block;
+  height: 2.4rem;
+  border-radius: 0.4rem;
+  background-color: #c3ffc2;
+}
+
+.unavailableDay::before {
+  width: 90%;
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: inline-block;
+  height: 2.4rem;
+  border-radius: 0.4rem;
+  background-color: #f9b5ac;
+}
+
+.legend {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.legend span {
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+}
+
+.legend .available::before {
+  content: "";
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.6rem;
+  background-color: #a2f3a0;
+}
+
+.legend .unavailable::before {
+  content: "";
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.6rem;
+  background-color: #f3a0a0;
+}
+
+.legend .selected::before {
+  content: "";
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.6rem;
+  background-color: #ace4f9;
+}
+
+.calendarContainer {
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.calendar {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 1rem;
+  background-color: #e5e5e5;
+  font-size: 1rem;
+  margin: 0.6rem 0;
+}
+
+.day {
+  position: relative;
+  background-color: #e8e8e8;
+}
+
+.selectedDay {
+  background-color: transparent;
+  font-weight: bold; /* Texto en negrita */
+}
+
+.selectedDay::before {
+  width: 90%;
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: inline-block;
+  height: 2.4rem;
+  border-radius: 0.4rem;
+  background-color: #ace4f9;
+}
+
+button.agendarButton {
+  width: fit-content;
+  margin: 0;
+}
+
+.doctorContainer {
+  width: 60rem;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.filters {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filters select,
+.search input {
+  padding: 0.6rem;
+  font-size: 1rem;
+  line-height: 0;
+}
+
+.filters .item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.filters h2 {
+  text-align: center;
+}
+
+.tableContainer {
+  height: 50vh;
+  overflow-y: auto; /* Permitir desplazamiento vertical */
+  width: 100%; /* Ajustamos el ancho para ocupar más espacio */
+  scrollbar-color: #d9d9d9 #ffffff;
+  scrollbar-width: thin;
+  border-radius: 0.5rem;
+  margin-top: 2rem;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.doctorsTable {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 0.5rem;
+}
+
+.doctorsTable thead tr {
+  width: 100%;
+  height: 3.2rem;
+  background-color: #000000;
+}
+
+.doctorsTable tbody tr {
+  width: 100%;
+  height: 3rem;
+}
+
+.doctorsTable th {
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  text-align: left;
+  z-index: 1;
+  padding: 0.5rem 1.1rem;
+  border-bottom: 0.08rem solid #9a9a9a;
+}
+
+.doctorsTable td {
+  border-bottom: 0.08rem solid #9a9a9a;
+  padding: 0.8rem 1.1rem;
+  font-weight: 450;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+}
+
+.search input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-right: none;
+  font-size: 1rem;
+  line-height: 0;
+}
+
+.search button {
+  border: 1px solid #ccc;
+  border-left: none;
+  line-height: 0;
+  padding: 0.85rem;
+  font-size: 1rem;
+  background-color: transparent;
+}
+
+.checkButton {
+  font-size: 1.2rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: 0.4s ease transform, 0.4s ease color;
+}
+
+.checkButton:hover {
+  transform: scale(1.1);
+  color: #94c480;
+}
+
+.confirmContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 1.5rem;
+  column-gap: 4rem;
+  padding: 2rem;
+}
+
+.confirmItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.confirmItem span {
+  background-color: #e3e3e3;
+  border-radius: 0.6rem;
+  padding: 0.4rem 2rem;
+  font-size: 1rem;
+}
+
+.confirmButton,
+.costItem {
+  margin: 0 auto;
+  text-align: center;
+  grid-column: span 2;
+}

@@ -30,7 +30,12 @@ export class UsuariosController {
     return this.usuariosService.findAll();
   }
 
-  @Get(':id')
+  @Get(':username')
+  async findOneByUsername(@Param('username') username: string) {
+    return await this.usuariosService.findOneByUsername(username);
+  }
+
+  @Get('')
   findOne(@Param('id') id: string) {
     return this.usuariosService.findOne(+id);
   }

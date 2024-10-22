@@ -9,6 +9,7 @@
 
 .appointmentsContainer {
   width: 25%;
+  height: 70vh;
   margin: 3rem 0 0 3rem;
   display: flex;
   flex-direction: column;
@@ -21,10 +22,8 @@
   margin-bottom: 0.4rem;
 }
 
-.appointments {
+.appointmentListContainer {
   display: flex;
-  justify-content: center;
-  align-items: center;
   text-align: center;
   font-size: 1.5rem;
   padding: 1rem;
@@ -35,8 +34,39 @@
   background-color: #ededed;
 }
 
+.appointmentList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1rem;
+  list-style: none;
+}
+
+.appointment {
+  width: 100%;
+  padding: 1rem 0.6rem;
+  display: flex;
+  background-color: #a0dbeb;
+  justify-content: space-between;
+  border-radius: 0.6rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.appointment_button {
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.4s transform ease;
+}
+
+.appointment_button:hover {
+  transform: scale(1.1);
+}
+
 .reviewsContainer {
   width: 25%;
+  height: 70vh;
   margin: 3rem 3rem 0 0;
   display: flex;
   flex-direction: column;
@@ -53,15 +83,16 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  justify-content: center;
-  align-items: center;
   padding: 1.3rem;
   font-style: italic;
   font-size: 0.9rem;
   font-weight: 400;
   border-radius: 1rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #452e2e;
   width: 100%;
-  height: 70vh;
+  height: 100%;
   background-color: #ededed;
 }
 
@@ -79,40 +110,43 @@
 
 .carouselContainer {
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
 }
 
 .carousel {
   width: 100%;
   overflow: hidden;
   margin: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .carousel_images {
   position: relative;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  transition: transform 0.5s ease;
-  width: 75%;
+  width: 80%;
+  height: 18rem;
+  overflow: hidden; /* Oculta imágenes fuera del contenedor */
 }
 
 .carousel_image {
+  position: absolute; /* Para apilar las imágenes una sobre otra */
   width: 100%;
-  display: none;
-  justify-content: center;
-  align-items: center;
+  height: 100%; /* Asegúrate de que todas las imágenes tengan la misma altura */
+  opacity: 0; /* Oculta la imagen por defecto */
+  transition: opacity 0.5s ease, transform 0.5s ease; /* Transición suave para visibilidad y movimiento */
+  transform: translateX(20px); /* Mueve hacia abajo para el efecto de entrada */
+}
+
+.carousel_image.active {
+  opacity: 1; /* Muestra la imagen activa */
+  transform: translateY(0); /* Restablece la posición original */
 }
 
 .carousel_image img {
   object-fit: cover;
   width: 100%;
   border-radius: 0.6rem;
-  height: auto;
-}
-
-.carousel_image.active {
-  display: flex;
+  height: 100%; /* Asegúrate de que la imagen llene todo el contenedor */
 }
 
 .carousel_button {
@@ -122,9 +156,10 @@
   background-color: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
-  font-size: 24px;
+  font-size: 1rem;
   cursor: pointer;
   padding: 10px;
+  z-index: 1;
 }
 
 .carousel_button.left {
@@ -140,7 +175,7 @@
   position: absolute;
   bottom: 0.4rem;
   text-align: center;
-  margin-top: 10px;
+  width: 100%;
 }
 
 .dot {
@@ -155,4 +190,46 @@
 
 .activeDot {
   background-color: black;
+}
+
+.confirmContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 1.5rem;
+  column-gap: 4rem;
+  padding: 2rem;
+}
+
+.confirmItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.confirmItem span {
+  background-color: #e3e3e3;
+  border-radius: 0.6rem;
+  padding: 0.4rem 2rem;
+  font-size: 1rem;
+}
+
+.confirmButton,
+.costItem {
+  margin: 0 auto;
+  text-align: center;
+  grid-column: span 2;
+}
+
+.noAppointments {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+  align-items: center; /* Centra verticalmente */
+  text-align: center; /* Alinea el texto al centro */
+}
+
+.hidden {
+  display: none;
 }

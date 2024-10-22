@@ -8,12 +8,14 @@ const Main = () => {
   const token = localStorage.getItem("authToken");
 
   const [username, setUsername] = useState("");
+  const [role, setRole] = useState("");
 
   useEffect(() => {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         setUsername(decodedToken.username || "Usuario");
+        setRole(decodedToken.role);
       } catch (error) {
         console.error("Error al decodificar el token", error);
         setUsername("Usuario");
@@ -24,7 +26,7 @@ const Main = () => {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ token, username }}>
+    <AuthContext.Provider value={{ token, username, role }}>
       <NavBar page={"INICIO"} />
       <Outlet />
     </AuthContext.Provider>

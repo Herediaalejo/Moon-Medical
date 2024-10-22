@@ -23,7 +23,7 @@
 }
 
 .green {
-  background-color: #2ecc71;
+  background-color: #4bf190;
 }
 
 .green:hover {
@@ -38,6 +38,68 @@
   background-color: #cef4ff;
 }
 
+.red {
+  background-color: #eba0a0;
+}
+
+.red:hover {
+  background-color: #ffd1d1;
+}
+
+.orange {
+  background-color: #ffce92;
+}
+
+.orange:hover {
+  background-color: #ffe2be;
+}
+
+.center {
+  text-align: center;
+}
+
+.deleteContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 0.6rem;
+  padding: 1.1rem;
+}
+
+.deleteContainer p {
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.deleteModalActions {
+  display: flex;
+  gap: 1.1rem;
+  margin-top: 1rem;
+}
+
+.deleteButton,
+.cancelButton {
+  width: 5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteButton,
+.cancelButton {
+  border: 0.08rem solid black;
+}
+
+.deleteButton:hover,
+.cancelButton:hover {
+  background-color: #d1d1d1;
+}
+
 @media (min-width: 1450px) or (min-height: 600px) {
   html {
     font-size: 22px;
@@ -46,7 +108,7 @@
 
 @media (max-width: 1450px) or (max-height: 600px) {
   html {
-    font-size: 18px;
+    font-size: 16px;
   }
 }
 

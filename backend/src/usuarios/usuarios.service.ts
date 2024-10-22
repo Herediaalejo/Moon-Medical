@@ -3,13 +3,26 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { Doctor } from './entities/doctor.entity';
+import { EspecialidadMedica } from './entities/especialidad_medica.entity';
+import { CitaMedica } from 'src/cita-medica/entities/cita-medica.entity';
 
 @Injectable()
 export class UsuariosService {
   @InjectRepository(Usuario)
   private usuariosRepository: Repository<Usuario>;
+
+  @InjectRepository(Doctor)
+  private readonly doctorRepository: Repository<Doctor>;
+
+  @InjectRepository(EspecialidadMedica)
+  private readonly especialidadRepository: Repository<EspecialidadMedica>;
+
+  @InjectRepository(CitaMedica)
+  private readonly citaMedicaRepository: Repository<CitaMedica>;
 
   public async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
@@ -30,7 +43,6 @@ export class UsuariosService {
           'Debe proporcionar los datos del usuario',
         );
       }
-      console.log(usuario);
 
       // Verificar campos obligatorios
       if (
@@ -49,7 +61,6 @@ export class UsuariosService {
         usuario: usuario.usuario,
       });
       if (existingUserByUsername) {
-        console.log(existingUserByUsername);
         throw new BadRequestException(
           'Ya existe un usuario con ese nombre de usuario',
         );
@@ -73,6 +84,48 @@ export class UsuariosService {
       return {
         statusCode: 201,
         msg: 'El usuario ha sido creado con éxito',
+        id_usuario: newUsuario.id_usuario,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  public async createDoctor(doctorDto: CreateDoctorDto) {
+    try {
+      if (!doctorDto) {
+        throw new BadRequestException('Debe proporcionar los datos del doctor');
+      }
+
+      // Verificar campos obligatorios
+      if (
+        !doctorDto.id_usuario ||
+        !doctorDto.id_especialidad ||
+        !doctorDto.horario_inicio ||
+        !doctorDto.horario_fin ||
+        !doctorDto.dias_laborales
+      ) {
+        throw new BadRequestException(
+          'Los campos "id_usuario", "id_especialidad", "horario_inicio", "horario_fin" y "dias_laborales" son obligatorios',
+        );
+      }
+
+      // Crear un nuevo doctor con los datos del DTO
+      const newDoctor = this.doctorRepository.create({
+        id_usuario: doctorDto.id_usuario,
+        id_especialidad: doctorDto.id_especialidad,
+        horario_inicio: doctorDto.horario_inicio,
+        horario_fin: doctorDto.horario_fin,
+        dias_laborales: doctorDto.dias_laborales,
+        activo: doctorDto.activo ?? true, // Si no se proporciona, se pone como true
+      });
+
+      // Guardar el nuevo doctor en la base de datos
+      await this.doctorRepository.save(newDoctor);
+
+      return {
+        statusCode: 201,
+        msg: 'El doctor ha sido creado con éxito',
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -86,6 +139,81 @@ export class UsuariosService {
         throw new BadRequestException('No existen usuarios');
       }
       return usuarios;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  public async findAllDoctores() {
+    try {
+      // Obtener doctores, usuarios y especialidades
+      const doctores = await this.doctorRepository.find();
+      const usuarios = await this.usuariosRepository.find();
+      const especialidades = await this.especialidadRepository.find();
+
+      // Obtener citas médicas que no están canceladas
+      const citasMedicas = await this.citaMedicaRepository.find({
+        where: {
+          estado: Not('Cancelada'),
+        },
+      });
+
+      // Procesar la data para agregar turnos ocupados por cada doctor
+      const data = doctores.map((doctor) => {
+        const usuario = usuarios.find(
+          (u) => u.id_usuario === doctor.id_usuario,
+        );
+        const especialidad = especialidades.find(
+          (e) => e.id_especialidad === doctor.id_especialidad,
+        );
+
+        const turnosOcupados = citasMedicas
+          .filter((cita) => cita.id_doctor === doctor.id_doctor)
+          .map((cita) => {
+            const paciente = usuarios.find(
+              (u) => u.id_usuario === cita.id_usuario,
+            );
+
+            return {
+              fecha_turno: cita.fecha_turno,
+              id_usuario: cita.id_usuario,
+              nombre_paciente: paciente ? paciente.nombre : 'Desconocido',
+              apellido_paciente: paciente ? paciente.apellido : 'Desconocido',
+              estado: cita.estado,
+            };
+          });
+
+        return {
+          id_doctor: doctor.id_doctor,
+          id_especialidad: doctor.id_especialidad,
+          especialidad: especialidad?.nombre_especialidad,
+          usuario: usuario?.usuario,
+          nombre: usuario?.nombre,
+          apellido: usuario?.apellido,
+          horario_inicio: doctor.horario_inicio,
+          horario_fin: doctor.horario_fin,
+          dias_laborales: doctor.dias_laborales,
+          activo: doctor.activo,
+          turnosOcupados,
+        };
+      });
+
+      if (data.length === 0) {
+        throw new BadRequestException('No existen doctores');
+      }
+      return data;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  public async findAllEspecialidades() {
+    try {
+      const especialidades = await this.especialidadRepository.find();
+      if (especialidades.length === 0) {
+        throw new BadRequestException('No existen especialidades');
+      }
+      return especialidades;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -111,7 +239,6 @@ export class UsuariosService {
       const usuario = await this.usuariosRepository.findOneBy({
         correo_electronico: correo_electronico,
       });
-      console.log(usuario);
       if (!usuario) {
         throw new BadRequestException('El usuario no existe');
       }
@@ -142,7 +269,6 @@ export class UsuariosService {
   public async update(id: number, newUsuario: UpdateUsuarioDto) {
     try {
       const currentUsuario = await this.findOne(id);
-      console.log(newUsuario);
 
       if (!newUsuario) {
         throw new BadRequestException(
