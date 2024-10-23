@@ -10,6 +10,7 @@
 }
 
 .login {
+  position: relative;
   min-width: 22rem;
   width: 23rem;
   padding: 1rem 0.5rem;
@@ -139,6 +140,22 @@
 .error.visible {
   display: block;
   opacity: 1;
+}
+
+.backButton {
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  border: none;
+  transition: 0.4s ease transform;
+  font-size: 1.5rem;
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+}
+
+.backButton:hover {
+  transform: scale(1.15);
 }
 
 @media (min-width: 1400px) {

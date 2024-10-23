@@ -18,6 +18,9 @@ import Modal from "../../components/Modal/Modal";
 const Home = () => {
   const { username, role } = useContext(AuthContext);
   const images = [medico1, medico2, medico3, medico4, medico5];
+  const { filteredItems: doctores, getItems: getDoctores } = useItems({
+    url: "http://localhost:3000/doctores",
+  });
   const { openModal, closeModal, modalOpen, selected } = useModal();
   const {
     openModal: openCancelModal,
@@ -25,7 +28,9 @@ const Home = () => {
     modalOpen: cancelModalOpen,
   } = useModal();
   const [userId, setUserId] = useState(0);
+  const [doctorId, setDoctorId] = useState(0);
   const [citasMedicas, setCitasMedicas] = useState([]);
+  const [citasDeHoy, setCitasDeHoy] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(2);
@@ -49,6 +54,46 @@ const Home = () => {
     }
   };
 
+  const fetchCitasDeHoy = async () => {
+    try {
+      if (userId && Number(userId)) {
+        const response = await fetch(
+          `http://localhost:3000/cita-medica/doctor/${doctorId}`
+        );
+        if (!response.ok) {
+          throw new Error("Error al obtener las citas de hoy");
+        }
+        const citas = await response.json();
+        console.log(citas);
+        if (!citas) {
+          throw new Error("No se encontraron citas para hoy");
+        }
+        const today = new Date();
+        const citasFiltradas = citas.filter((cita) => {
+          const fechaTurno = new Date(cita.fecha_turno);
+          if (cita.estado === "Completada" || cita.estado === "Cancelada")
+            return false;
+          return (
+            fechaTurno.getDate() === today.getDate() &&
+            fechaTurno.getMonth() === today.getMonth() &&
+            fechaTurno.getFullYear() === today.getFullYear()
+          );
+        });
+
+        // Ordenar las citas filtradas por hora y minuto
+        citasFiltradas.sort((a, b) => {
+          return new Date(a.fecha_turno) - new Date(b.fecha_turno);
+        });
+
+        console.log(citasFiltradas);
+
+        setCitasDeHoy(citasFiltradas);
+      }
+    } catch (error) {
+      showMessage(error.message, "error");
+    }
+  };
+
   const fetchCitas = async () => {
     try {
       if (userId && Number(userId)) {
@@ -62,8 +107,13 @@ const Home = () => {
 
         // Filtrar citas que no estén canceladas
         const citasFiltradas = citas.filter(
-          (cita) => cita.estado !== "Cancelada"
+          (cita) => cita.estado !== "Cancelada" && cita.estado !== "Completada"
         );
+
+        // Ordenar las citas filtradas por fecha, hora y minuto
+        citasFiltradas.sort((a, b) => {
+          return new Date(a.fecha_turno) - new Date(b.fecha_turno);
+        });
 
         setCitasMedicas(citasFiltradas);
       }
@@ -72,9 +122,68 @@ const Home = () => {
     }
   };
 
+  const completeAppointment = async (id_cita) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/cita-medica/${id_cita}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al completar la cita");
+      }
+      showMessage("Cita completada", "success");
+      fetchCitasDeHoy();
+    } catch (error) {
+      showMessage(error.message, "error");
+    }
+  };
+
+  useEffect(() => {
+    const checkAndUpdateAppointmentStatus = () => {
+      const now = new Date();
+
+      citasDeHoy.forEach((cita) => {
+        const fechaTurno = new Date(cita.fecha_turno);
+
+        if (fechaTurno < now && cita.estado !== "Completada") {
+          // Actualizar el estado de la cita si ya ha pasado
+          completeAppointment(cita.id_cita);
+        }
+      });
+    };
+
+    if (citasDeHoy.length > 0) {
+      // Revisa cada minuto si alguna cita ha pasado la hora actual
+      const interval = setInterval(checkAndUpdateAppointmentStatus, 60000);
+      // Revisar inmediatamente después de cargar las citas
+      checkAndUpdateAppointmentStatus();
+
+      return () => clearInterval(interval); // Limpiar el intervalo cuando se desmonte el componente
+    }
+  }, [citasDeHoy]);
+
   useEffect(() => {
     fetchUser();
   }, [role]);
+
+  useEffect(() => {
+    if (doctorId && Number(doctorId)) {
+      fetchCitasDeHoy();
+    }
+  }, [doctorId]);
+
+  useEffect(() => {
+    if (role === "doctor" && doctores && doctores.length > 0) {
+      const doctor = doctores.find((doc) => doc.id_usuario === userId);
+      setDoctorId(doctor?.id_doctor);
+    }
+  }, [doctores]);
 
   useEffect(() => {
     if (role === "client") {
@@ -87,10 +196,6 @@ const Home = () => {
       showMessage(location.state.message, location.state.messageType);
     }
   }, [location]);
-
-  useEffect(() => {
-    console.log("citas: ", citasMedicas);
-  }, [citasMedicas]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -143,47 +248,74 @@ const Home = () => {
         <div className={styles.appointmentListContainer}>
           <ul
             className={
-              Object.entries(citasMedicas).length > 0
+              (role === "doctor" ? citasDeHoy.length : citasMedicas.length) > 0
                 ? styles.appointmentList
                 : styles.hidden
             }
           >
-            {Object.entries(citasMedicas).length > 0 &&
-              citasMedicas.map((cita) => {
-                const fechaTurno = new Date(cita.fecha_turno);
-                const fecha =
-                  fechaTurno.toLocaleDateString().split("/")[0] +
-                  "/" +
-                  fechaTurno.toLocaleDateString().split("/")[1];
-                const hora =
-                  fechaTurno.toLocaleTimeString().split(":")[0] +
-                  ":" +
-                  fechaTurno.toLocaleTimeString().split(":")[1];
+            {role === "doctor"
+              ? citasDeHoy.map((cita) => {
+                  const fechaTurno = new Date(cita.fecha_turno);
+                  const fecha =
+                    fechaTurno.toLocaleDateString().split("/")[0] +
+                    "/" +
+                    fechaTurno.toLocaleDateString().split("/")[1];
+                  const hora =
+                    fechaTurno.toLocaleTimeString().split(":")[0] +
+                    ":" +
+                    fechaTurno.toLocaleTimeString().split(":")[1];
 
-                return (
-                  <li className={styles.appointment} key={cita.id_cita}>
-                    <span>
-                      {cita.generoDoctor === "Masculino" ? "Dr." : "Dra."}{" "}
-                      {cita.nombreDoctor} {cita.apellidoDoctor}
-                    </span>
-                    <span className={styles.appointment_date}>{fecha}</span>
-                    <span className={styles.appointment_time}>{hora}</span>
-                    <FaEye
-                      className={styles.appointment_button}
-                      onClick={() => openModal(cita)}
-                    />
-                  </li>
-                );
-              })}
+                  return (
+                    <li className={styles.appointment} key={cita.id_cita}>
+                      <span>{cita.apellidoPaciente}</span>
+                      <span className={styles.appointment_date}>{fecha}</span>
+                      <span className={styles.appointment_time}>{hora}</span>
+                    </li>
+                  );
+                })
+              : citasMedicas.map((cita) => {
+                  const fechaTurno = new Date(cita.fecha_turno);
+                  const fecha =
+                    fechaTurno.toLocaleDateString().split("/")[0] +
+                    "/" +
+                    fechaTurno.toLocaleDateString().split("/")[1];
+                  const hora =
+                    fechaTurno.toLocaleTimeString().split(":")[0] +
+                    ":" +
+                    fechaTurno.toLocaleTimeString().split(":")[1];
+
+                  return (
+                    <li className={styles.appointment} key={cita.id_cita}>
+                      <span>
+                        {cita.generoDoctor === "Masculino" ? "Dr." : "Dra."}{" "}
+                        {cita.apellidoDoctor}
+                      </span>
+                      <span className={styles.appointment_date}>{fecha}</span>
+                      <span className={styles.appointment_time}>{hora}</span>
+                      <FaEye
+                        className={styles.appointment_button}
+                        onClick={() => openModal(cita)}
+                      />
+                    </li>
+                  );
+                })}
           </ul>
-          {!citasMedicas ||
-            (citasMedicas.length === 0 && (
+
+          {role === "client" &&
+            (!citasMedicas || citasMedicas.length === 0) && (
               <div className={styles.noAppointments}>
                 <p>No tienes citas médicas agendadas</p>
               </div>
-            ))}
+            )}
+
+          {role === "doctor" && (!citasDeHoy || citasDeHoy.length === 0) && (
+            <div className={styles.noAppointments}>
+              <p>No tienes citas para hoy</p>
+            </div>
+          )}
         </div>
       </div>
+
       <div className={styles.midContainer}>
         <img className={styles.login__logo} src={logo} alt="logo" />
         <p className={styles.subtitle}>Tu salud, nuestra prioridad.</p>

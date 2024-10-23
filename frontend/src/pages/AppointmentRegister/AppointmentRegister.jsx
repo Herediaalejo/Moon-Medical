@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 const AppointmentRegister = () => {
   const { token, username } = useContext(AuthContext);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectDoctor, setSelectDoctor] = useState([]);
   const [userId, setUserId] = useState(null);
   const [selectEspecialidad, setSelectEspecialidad] = useState("Todas");
@@ -85,10 +85,10 @@ const AppointmentRegister = () => {
         "Viernes",
         "Sábado",
       ];
-      const diasLaboralesDoctor =
-        selectDoctor && selectDoctor.dias_laborales
-          ? selectDoctor.dias_laborales.map((dia) => diasSemana.indexOf(dia))
-          : [];
+
+      const diasLaboralesDoctor = selectDoctor.dias_laborales
+        ? selectDoctor.dias_laborales.map((dia) => diasSemana.indexOf(dia))
+        : [];
 
       setIdDiasLaborales(diasLaboralesDoctor);
 
@@ -128,9 +128,35 @@ const AppointmentRegister = () => {
         }
       }
 
-      setHorasDisponibles(horarios);
+      // Filtra las horas ocupadas basándose en los turnos ocupados
+      const horasOcupadas = selectDoctor.turnosOcupados
+        .filter((cita) => {
+          const appointmentDate = new Date(cita.fecha_turno);
+          return (
+            appointmentDate.getFullYear() === selectedDate?.getFullYear() &&
+            appointmentDate.getMonth() === selectedDate?.getMonth() &&
+            appointmentDate.getDate() === selectedDate?.getDate()
+          );
+        })
+        .map((cita) => {
+          const appointmentDate = new Date(cita.fecha_turno);
+          const appointmentHour = appointmentDate.getHours();
+          const appointmentMinutes = appointmentDate.getMinutes();
+          return `${appointmentHour
+            .toString()
+            .padStart(2, "0")}:${appointmentMinutes
+            .toString()
+            .padStart(2, "0")}`;
+        });
+
+      // Filtramos las horas disponibles para que excluyan las ocupadas
+      const horasDisponiblesFiltradas = horarios.filter(
+        (hour) => !horasOcupadas.includes(hour)
+      );
+
+      setHorasDisponibles(horasDisponiblesFiltradas);
     }
-  }, [selectDoctor]);
+  }, [selectDoctor, selectedDate]);
 
   useEffect(() => {
     const filtered = doctores.filter(
@@ -142,15 +168,19 @@ const AppointmentRegister = () => {
     );
 
     setFilteredDoctors(filtered);
-  }, [selectEspecialidad, searchTerm, doctores]);
+  }, [selectEspecialidad, searchTerm, doctores, selectedDate]);
 
   const handleDateChange = (date) => {
-    // Verifica que el valor de la fecha es diferente antes de actualizar
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normaliza la fecha de hoy sin horas
+
+    // Verifica que la fecha seleccionada es hoy o un día posterior
     if (
-      (idDiasLaborales.includes(date.getDay()) &&
-        date.getDate() !== selectedDate.getDate()) ||
-      date.getMonth() !== selectedDate.getMonth() ||
-      date.getFullYear() !== selectedDate.getFullYear()
+      date > today &&
+      idDiasLaborales.includes(date.getDay()) &&
+      (date.getDate() !== selectedDate?.getDate() ||
+        date.getMonth() !== selectedDate?.getMonth() ||
+        date.getFullYear() !== selectedDate?.getFullYear())
     ) {
       setSelectedDate(date);
     }
@@ -161,19 +191,29 @@ const AppointmentRegister = () => {
     ({ date, view }) => {
       if (view === "month") {
         const diaSemana = date.getDay();
+        const today = new Date(); // Fecha de hoy sin horas, minutos, segundos
+        today.setHours(0, 0, 0, 0); // Esto asegura que la comparación sea precisa
+
+        if (date <= today) {
+          return styles.unavailableDay;
+        }
+
         if (
           selectedDate &&
-          date.getDate() === selectedDate.getDate() &&
-          date.getMonth() === selectedDate.getMonth() &&
-          date.getFullYear() === selectedDate.getFullYear() &&
+          date.getDate() === selectedDate?.getDate() &&
+          date.getMonth() === selectedDate?.getMonth() &&
+          date.getFullYear() === selectedDate?.getFullYear() &&
           idDiasLaborales.includes(diaSemana)
         ) {
+          // Si la fecha seleccionada es la misma que la actual y es un día laboral
           return styles.selectedDay;
         }
 
         if (idDiasLaborales.includes(diaSemana)) {
+          // Si es un día laboral, pero no es el seleccionado
           return styles.availableDay;
         } else {
+          // Si no es un día laboral, lo marcamos como no disponible
           return styles.unavailableDay;
         }
       }
@@ -199,8 +239,6 @@ const AppointmentRegister = () => {
         fecha_turno: fecha.toISOString(),
         costo: 5000,
       };
-      console.log(data);
-
       const response = await fetch("http://localhost:3000/cita-medica", {
         method: "POST",
         headers: {
@@ -238,14 +276,16 @@ const AppointmentRegister = () => {
 
           <span>
             {Object.keys(selectDoctor).length > 0
-              ? selectDoctor.nombre + " " + selectDoctor.apellido
+              ? (selectDoctor.genero === "Masculino" ? "Dr." : "Dra.") +
+                " " +
+                selectDoctor.apellido
               : "Sin seleccionar"}
           </span>
         </div>
         <button
           className={`button lightblue ${styles.agendarButton}`}
           onClick={() => openModal2()}
-          disabled={!selectedHour ? true : false}
+          disabled={!selectedHour || !selectedDate ? true : false}
         >
           Agendar
         </button>
@@ -253,7 +293,7 @@ const AppointmentRegister = () => {
           <div className={styles.item}>
             <label>Fecha</label>
             <span className={styles.selectedDate}>
-              {selectedDate.toLocaleDateString()}
+              {selectedDate?.toLocaleDateString()}
             </span>
           </div>
 
@@ -373,7 +413,7 @@ const AppointmentRegister = () => {
         <div className={styles.confirmContainer}>
           <div className={styles.confirmItem}>
             <label>Fecha</label>
-            <span>{selectedDate.toLocaleDateString()}</span>
+            <span>{selectedDate?.toLocaleDateString()}</span>
           </div>
           <div className={styles.confirmItem}>
             <label>Hora</label>

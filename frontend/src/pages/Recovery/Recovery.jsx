@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo_moon-medical.png";
 import styles from "./Recovery.module.css";
+import { IoArrowBackCircle } from "react-icons/io5";
 
 function Recovery() {
   const { register, handleSubmit } = useForm();
@@ -93,6 +94,12 @@ function Recovery() {
   return (
     <div className={styles.body}>
       <main className={styles.login}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate("/moon-medical/login")}
+        >
+          <IoArrowBackCircle />
+        </button>
         <img className={styles.login__logo} src={logo} alt="logo" />
         {validEmail && (
           <form

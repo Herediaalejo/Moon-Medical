@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 export class CreateCitaMedicaDto {
-  @IsNotEmpty({ message: 'El id del usuario es obligatorio' })
+  @IsOptional()
   @IsInt({ message: 'El id del usuario debe ser un número entero' })
   id_usuario: number;
 

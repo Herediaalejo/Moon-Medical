@@ -5,15 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CitaMedica } from './entities/cita-medica.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
+import { NotificacionService } from './notificacion.service';
+import { Notificacion } from './entities/notificacion.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CitaMedica]),
+    TypeOrmModule.forFeature([CitaMedica, Notificacion]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsuariosModule),
   ],
   controllers: [CitaMedicaController],
-  providers: [CitaMedicaService],
+  providers: [CitaMedicaService, NotificacionService],
   exports: [TypeOrmModule],
 })
 export class CitaMedicaModule {}

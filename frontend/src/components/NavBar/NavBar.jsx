@@ -8,16 +8,79 @@ import Modal from "../Modal/Modal";
 import { AuthContext } from "../Main/Main";
 
 function NavBar() {
-  const { role } = useContext(AuthContext);
+  const { role, username } = useContext(AuthContext);
   const [navOptions, setNavOptions] = useState(["INICIO", "AGENDAR CITA"]);
   const [selectedItem, setSelectedItem] = useState("INICIO");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   const [notiDays, setNotiDays] = useState(0);
   const [notiMenuOpen, setNotiMenuOpen] = useState(false);
   const [isHabilitadas, setIsHabilitadas] = useState(false);
   const [isSms, setIsSms] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const fetchNotificaciones = async () => {
+    try {
+      console.log("Ejecutando fetchNotificaciones");
+      const response = await fetch(
+        `http://localhost:3000/cita-medica/notificaciones/${userId}`
+      );
+      if (!response.ok) {
+        throw new Error("Error al obtener las citas médicas");
+      }
+      const notificaciones = await response.json();
+      const notificacionesFiltradas = notificaciones.filter(
+        (noti) => !noti.eliminada
+      );
+      setNotifications(notificacionesFiltradas);
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/usuarios/${username}`
+        );
+        if (!response.ok) {
+          throw new Error("Error al obtener el usuario");
+        }
+        const user = await response.json();
+        setUserId(user.id_usuario);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    };
+    if (username !== undefined) {
+      fetchUser();
+    }
+  }, [username, location.pathname]);
+
+  useEffect(() => {
+    if (userId && Number(userId)) {
+      fetchNotificaciones();
+    }
+  }, [userId, location.pathname]);
+
+  useEffect(() => {
+    const savedHabilitadas = localStorage.getItem("notificaciones_habilitadas");
+    const savedSms = localStorage.getItem("modo_envio");
+    const savedNotiDays = localStorage.getItem("noti_days");
+
+    if (savedHabilitadas) {
+      setIsHabilitadas(JSON.parse(savedHabilitadas));
+    }
+    if (savedSms) {
+      setIsSms(JSON.parse(savedSms));
+    }
+    if (savedNotiDays) {
+      setNotiDays(Number(savedNotiDays));
+    }
+  }, []);
 
   useEffect(() => {
     const pathname = location.pathname;
@@ -67,25 +130,88 @@ function NavBar() {
 
   const handleToggle = (option, type) => {
     if (type === "habilitadas") {
-      setIsHabilitadas(option === "yes");
+      const newValue = option === "yes";
+      setIsHabilitadas(newValue);
+      localStorage.setItem(
+        "notificaciones_habilitadas",
+        JSON.stringify(newValue)
+      );
     }
 
     if (type === "sms") {
-      setIsSms(option === "yes");
+      const newValue = option === "yes";
+      setIsSms(newValue);
+      localStorage.setItem("modo_envio", JSON.stringify(newValue));
     }
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+  const handleSliderChange = (event) => {
+    const newValue = Number(event.target.value);
+    setNotiDays(newValue);
+    localStorage.setItem("noti_days", newValue);
   };
 
-  const handleSliderChange = (event) => {
-    setNotiDays(event.target.value);
+  const toggleMenu = async () => {
+    setMenuOpen(!menuOpen);
+    const noLeidas = notifications.some((noti) => !noti.leida);
+
+    if (noLeidas) {
+      setNotifications((prev) => {
+        return prev.map((noti) => {
+          return { ...noti, leida: true }; // Cambia 'noti.leida' a 'leida'
+        });
+      });
+
+      const idsToUpdate = notifications
+        .filter((noti) => !noti.leida)
+        .map((noti) => noti.id_notificacion);
+
+      try {
+        // Envía una solicitud PUT o PATCH a tu API
+        const response = await fetch(
+          `http://localhost:3000/cita-medica/notificaciones`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ids: idsToUpdate, leida: true }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al actualizar las notificaciones");
+        }
+
+        // Si necesitas hacer algo después de la actualización exitosa
+        console.log("Notificaciones actualizadas con éxito");
+      } catch (error) {
+        console.error("Error al actualizar las notificaciones:", error);
+      }
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/moon-medical/login");
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/cita-medica/notificaciones/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Error al eliminar la notificación");
+      }
+
+      fetchNotificaciones();
+    } catch (error) {
+      console.error("Error al eliminar la notificación:", error);
+    }
   };
 
   return (
@@ -103,24 +229,42 @@ function NavBar() {
           </li>
         ))}
         <li
-          className={`${styles.navbar__item} ${styles.navbar__icon} ${styles.mark}`}
+          className={`${styles.navbar__item} ${styles.navbar__icon} ${
+            notifications.some((noti) => !noti.leida) && styles.mark
+          }`}
           onClick={toggleMenu}
         >
           <BiSolidBell />
         </li>
         {menuOpen && (
           <div className={styles.backdrop} onClick={toggleMenu}>
-            <div className={styles.dropdownMenu}>
+            <div
+              className={styles.dropdownMenu}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h5 className={styles.menu__title}>Notificaciones</h5>
               <IoIosSettings
                 className={styles.configIcon}
                 onClick={() => setNotiMenuOpen(true)}
               />
               <ul className={`${styles.notificationList} `}>
-                <li className={styles.notification}>
-                  Se le recuerda que su cita con el Dr. Omar Tijón es el 17/10 a
-                  las 13:00 hs
-                </li>
+                {notifications && notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <li
+                      className={styles.notification}
+                      key={notification.id_notificacion}
+                      onClick={() =>
+                        deleteNotification(notification.id_notificacion)
+                      }
+                    >
+                      {notification.mensaje}
+                    </li>
+                  ))
+                ) : (
+                  <p className={styles.noNotifications}>
+                    No hay notificaciones
+                  </p>
+                )}
               </ul>
             </div>
           </div>
@@ -202,7 +346,10 @@ function NavBar() {
               </div>
               <p> antes.</p>
             </div>
-            <button className={`${styles.saveButton} button green`}>
+            <button
+              className={`${styles.saveButton} button green`}
+              onClick={() => closeNotiMenu()}
+            >
               Guardar Cambios
             </button>
           </div>

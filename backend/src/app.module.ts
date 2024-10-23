@@ -9,6 +9,7 @@ import { Doctor } from './usuarios/entities/doctor.entity';
 import { EspecialidadMedica } from './usuarios/entities/especialidad_medica.entity';
 import { CitaMedicaModule } from './cita-medica/cita-medica.module';
 import { CitaMedica } from './cita-medica/entities/cita-medica.entity';
+import { Notificacion } from './cita-medica/entities/notificacion.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { CitaMedica } from './cita-medica/entities/cita-medica.entity';
       port: 3306,
       username: 'root',
       database: 'moonmedical',
-      entities: [Usuario, Doctor, EspecialidadMedica, CitaMedica],
+      entities: [Usuario, Doctor, EspecialidadMedica, CitaMedica, Notificacion],
     }),
     UsuariosModule,
     AuthModule,

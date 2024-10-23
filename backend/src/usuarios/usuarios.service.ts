@@ -146,19 +146,15 @@ export class UsuariosService {
 
   public async findAllDoctores() {
     try {
-      // Obtener doctores, usuarios y especialidades
       const doctores = await this.doctorRepository.find();
       const usuarios = await this.usuariosRepository.find();
       const especialidades = await this.especialidadRepository.find();
-
-      // Obtener citas médicas que no están canceladas
       const citasMedicas = await this.citaMedicaRepository.find({
         where: {
           estado: Not('Cancelada'),
         },
       });
 
-      // Procesar la data para agregar turnos ocupados por cada doctor
       const data = doctores.map((doctor) => {
         const usuario = usuarios.find(
           (u) => u.id_usuario === doctor.id_usuario,
@@ -170,11 +166,22 @@ export class UsuariosService {
         const turnosOcupados = citasMedicas
           .filter((cita) => cita.id_doctor === doctor.id_doctor)
           .map((cita) => {
-            const paciente = usuarios.find(
+            // Clonar el paciente para evitar mutaciones no deseadas
+            let paciente = usuarios.find(
               (u) => u.id_usuario === cita.id_usuario,
             );
 
+            // Si el doctor es el mismo usuario que el paciente, crear un clon con datos desconocidos
+            if (paciente?.id_usuario === doctor.id_usuario) {
+              paciente = {
+                ...paciente,
+                nombre: 'Desconocido',
+                apellido: 'Desconocido',
+              };
+            }
+
             return {
+              id_cita: cita.id_cita,
               fecha_turno: cita.fecha_turno,
               id_usuario: cita.id_usuario,
               nombre_paciente: paciente ? paciente.nombre : 'Desconocido',
@@ -184,12 +191,14 @@ export class UsuariosService {
           });
 
         return {
+          id_usuario: doctor.id_usuario,
           id_doctor: doctor.id_doctor,
           id_especialidad: doctor.id_especialidad,
           especialidad: especialidad?.nombre_especialidad,
           usuario: usuario?.usuario,
           nombre: usuario?.nombre,
           apellido: usuario?.apellido,
+          genero: usuario?.genero,
           horario_inicio: doctor.horario_inicio,
           horario_fin: doctor.horario_fin,
           dias_laborales: doctor.dias_laborales,
@@ -201,6 +210,7 @@ export class UsuariosService {
       if (data.length === 0) {
         throw new BadRequestException('No existen doctores');
       }
+
       return data;
     } catch (error) {
       throw new BadRequestException(error.message);
