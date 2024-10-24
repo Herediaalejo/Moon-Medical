@@ -49,10 +49,19 @@ export class UsuariosService {
         !usuario.usuario ||
         !usuario.contrasena ||
         !usuario.rol ||
-        !usuario.correo_electronico
+        !usuario.correo_electronico ||
+        !usuario.documento // Validar que el DNI esté presente
       ) {
         throw new BadRequestException(
-          'Los campos "usuario", "contrasena", "rol" y "correo_electronico" son obligatorios',
+          'Los campos "usuario", "contrasena", "rol", "correo_electronico" y "dni" son obligatorios',
+        );
+      }
+
+      // Validar que la contraseña cumpla con los requisitos de seguridad
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+      if (!passwordRegex.test(usuario.contrasena)) {
+        throw new BadRequestException(
+          'La contraseña debe tener al menos 8 caracteres, incluyendo una letra minúscula, una letra mayúscula y un número',
         );
       }
 
@@ -74,12 +83,24 @@ export class UsuariosService {
         throw new BadRequestException('Ya existe un usuario con ese email');
       }
 
+      // Verificar si ya existe un usuario con el mismo DNI
+      const existingUserByDNI = await this.usuariosRepository.findOneBy({
+        documento: usuario.documento,
+      });
+      if (existingUserByDNI) {
+        throw new BadRequestException(
+          'Ya existe un usuario con ese documento (DNI)',
+        );
+      }
+
+      // Hashear la contraseña
       const hashedPassword = await this.hashPassword(usuario.contrasena);
       const newUsuario = this.usuariosRepository.create({
         ...usuario,
         contrasena: hashedPassword,
       });
 
+      // Guardar el nuevo usuario
       await this.usuariosRepository.save(newUsuario);
       return {
         statusCode: 201,
@@ -286,7 +307,27 @@ export class UsuariosService {
         );
       }
 
+      // Verificar campos obligatorios en el update
+      if (
+        !newUsuario.usuario &&
+        !newUsuario.contrasena &&
+        !newUsuario.rol &&
+        !newUsuario.correo_electronico &&
+        !newUsuario.documento
+      ) {
+        throw new BadRequestException(
+          'Al menos uno de los campos "usuario", "contrasena", "rol", "correo_electronico" o "dni" debe ser proporcionado',
+        );
+      }
+
       if (newUsuario.contrasena) {
+        // Validar que la contraseña cumpla con los requisitos de seguridad
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+        if (!passwordRegex.test(newUsuario.contrasena)) {
+          throw new BadRequestException(
+            'La contraseña debe tener al menos 8 caracteres, incluyendo una letra minúscula, una letra mayúscula y un número',
+          );
+        }
         newUsuario.contrasena = await this.hashPassword(newUsuario.contrasena);
       } else {
         newUsuario.contrasena = currentUsuario.contrasena; // Mantener la contraseña actual si no se proporciona una nueva

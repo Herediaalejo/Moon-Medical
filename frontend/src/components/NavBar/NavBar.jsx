@@ -23,13 +23,23 @@ function NavBar() {
 
   const fetchNotificaciones = async () => {
     try {
-      console.log("Ejecutando fetchNotificaciones");
       const response = await fetch(
         `http://localhost:3000/cita-medica/notificaciones/${userId}`
       );
-      if (!response.ok) {
-        throw new Error("Error al obtener las citas médicas");
+
+      // Manejo de la respuesta
+      if (response.status === 404) {
+        setNotifications([]);
+        return;
       }
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(
+          errorResponse.msg || "Error al obtener las notificaciones"
+        );
+      }
+
       const notificaciones = await response.json();
       const notificacionesFiltradas = notificaciones.filter(
         (noti) => !noti.eliminada

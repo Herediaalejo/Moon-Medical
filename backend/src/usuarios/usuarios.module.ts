@@ -17,6 +17,6 @@ import { CitaMedicaModule } from 'src/cita-medica/cita-medica.module';
   ],
   controllers: [UsuariosController, DoctoresController],
   providers: [UsuariosService],
-  exports: [UsuariosService, TypeOrmModule],
+  exports: [UsuariosService, TypeOrmModule, UsuariosController],
 })
 export class UsuariosModule {}

@@ -8,25 +8,59 @@ import styles from "./DoctorRegister.module.css";
 import useItems from "../../hooks/useItems";
 
 function DoctorRegister() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, watch } = useForm();
   const {
     items: especialidades,
     getItems: getEspecialidades,
     showMessage,
   } = useItems({ url: "http://localhost:3000/doctores/especialidades" });
+  const { filteredItems: usuarios } = useItems({
+    url: "http://localhost:3000/usuarios",
+  });
   const [diasLaborales, setDiasLaborales] = useState([]);
   const [validData, setValidData] = useState(false);
+  const [emails, setEmails] = useState([]);
+  const [documentos, setDocumentos] = useState([]);
   const [validDoctorData, setValidDoctorData] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const mostrarError = (errorMessage) => {
-    setError(errorMessage);
-  };
+  const email = watch("correo_electronico");
+  const documento = watch("documento");
+  const telefono = watch("telefono");
 
   useEffect(() => {
-    console.log(especialidades);
-  }, [especialidades]);
+    if (usuarios.length > 0) {
+      console.log(usuarios);
+      setEmails(usuarios.map((usuario) => usuario.correo_electronico));
+      setDocumentos(usuarios.map((usuario) => usuario.documento));
+    }
+  }, [usuarios]);
+
+  useEffect(() => {
+    if (email && emails.includes(email)) {
+      mostrarError(
+        "El correo electrónico ya está en uso. Por favor ingrese uno nuevo."
+      );
+    } else if (documento && documentos.includes(documento)) {
+      mostrarError(
+        "El documento ya está registrado. Por favor ingrese uno nuevo."
+      );
+    } else if (telefono && !/^\d+$/.test(telefono)) {
+      mostrarError("El teléfono no puede contener letras ni espacios.");
+    } else if (documento && !/^\d+$/.test(documento)) {
+      mostrarError("El documento no puede contener letras.");
+    } else {
+      setError("");
+    }
+  }, [email, documento, telefono, emails, documentos]);
+
+  const mostrarError = (errorMessage) => {
+    setError(errorMessage);
+    setTimeout(() => {
+      setError("");
+    }, 5000);
+  };
 
   const handleDiaChange = (e) => {
     const { name, checked } = e.target;
@@ -138,22 +172,22 @@ function DoctorRegister() {
       console.log(personalData);
 
       if (username === "" || password === "" || repeatpassword === "") {
-        setError("Todos los campos son obligatorios");
+        mostrarError("Todos los campos son obligatorios");
         return;
       }
 
       if (password !== repeatpassword) {
-        setError("Las contraseñas no coinciden");
+        mostrarError("Las contraseñas no coinciden");
         return;
       }
 
       if (username.length < 4) {
-        setError("El nombre de usuario debe tener al menos 4 caracteres");
+        mostrarError("El nombre de usuario debe tener al menos 4 caracteres");
         return;
       }
 
       if (password.length < 8) {
-        setError("La contraseña debe tener al menos 8 caracteres");
+        mostrarError("La contraseña debe tener al menos 8 caracteres");
         return;
       }
       const response = await fetch("http://localhost:3000/usuarios/registrar", {
@@ -203,7 +237,7 @@ function DoctorRegister() {
         }
       } else {
         const errorData = await response.json();
-        setError(errorData.message);
+        mostrarError(errorData.message);
       }
     } catch (error) {
       mostrarError(error.message);
@@ -219,13 +253,12 @@ function DoctorRegister() {
       >
         <img className={styles.register__logo} src={logo} alt="logo" />
         <button
-          className={styles.backButton}
+          className={!validData ? styles.hidden : styles.backButton}
           onClick={
-            (validData
+            (validData && !validDoctorData
               ? () => setValidData(false)
-              : () => navigate("/moon-medical/login")) || validDoctorData
-              ? () => setValidDoctorData(false)
-              : null
+              : null) ||
+            (validDoctorData ? () => setValidDoctorData(false) : null)
           }
         >
           <IoArrowBackCircle />

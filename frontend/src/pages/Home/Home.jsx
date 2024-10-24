@@ -18,7 +18,7 @@ import Modal from "../../components/Modal/Modal";
 const Home = () => {
   const { username, role } = useContext(AuthContext);
   const images = [medico1, medico2, medico3, medico4, medico5];
-  const { filteredItems: doctores, getItems: getDoctores } = useItems({
+  const { filteredItems: doctores } = useItems({
     url: "http://localhost:3000/doctores",
   });
   const { openModal, closeModal, modalOpen, selected } = useModal();
@@ -60,13 +60,19 @@ const Home = () => {
         const response = await fetch(
           `http://localhost:3000/cita-medica/doctor/${doctorId}`
         );
+
+        if (response.status === 404) {
+          setCitasDeHoy([]);
+          return;
+        }
+
         if (!response.ok) {
           throw new Error("Error al obtener las citas de hoy");
         }
+
         const citas = await response.json();
-        console.log(citas);
         if (!citas) {
-          throw new Error("No se encontraron citas para hoy");
+          return null;
         }
         const today = new Date();
         const citasFiltradas = citas.filter((cita) => {
@@ -84,8 +90,6 @@ const Home = () => {
         citasFiltradas.sort((a, b) => {
           return new Date(a.fecha_turno) - new Date(b.fecha_turno);
         });
-
-        console.log(citasFiltradas);
 
         setCitasDeHoy(citasFiltradas);
       }

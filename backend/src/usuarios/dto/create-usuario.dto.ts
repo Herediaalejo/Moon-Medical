@@ -30,13 +30,13 @@ export class CreateUsuarioDto {
   @IsDateString()
   fecha_nacimiento: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'El telefono es obligatorio' })
   @IsString()
-  telefono?: string;
+  telefono: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'La dirección es obligatoria' })
   @IsString()
-  direccion?: string;
+  direccion: string;
 
   @IsNotEmpty({ message: 'El correo electrónico es obligatorio' })
   @IsEmail({}, { message: 'El correo electrónico debe ser válido' })

@@ -1,19 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { IoArrowBackCircle } from "react-icons/io5";
 import logo from "../../assets/logo_moon-medical.png";
 import avatar from "../../assets/avatar.png";
 import styles from "./Register.module.css";
+import useItems from "../../hooks/useItems";
 
 function Register() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, watch } = useForm();
   const [validData, setValidData] = useState(false);
+  const [emails, setEmails] = useState([]);
+  const [documentos, setDocumentos] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { filteredItems: usuarios } = useItems({
+    url: "http://localhost:3000/usuarios",
+  });
+
+  useEffect(() => {
+    if (usuarios.length > 0) {
+      console.log(usuarios);
+      setEmails(usuarios.map((usuario) => usuario.correo_electronico));
+      setDocumentos(usuarios.map((usuario) => usuario.documento));
+    }
+  }, [usuarios]);
+
+  const email = watch("correo_electronico");
+  const documento = watch("documento");
+  const telefono = watch("telefono");
+
+  useEffect(() => {
+    if (email && emails.includes(email)) {
+      mostrarError(
+        "El correo electrónico ya está en uso. Por favor ingrese uno nuevo."
+      );
+    } else if (documento && documentos.includes(documento)) {
+      mostrarError(
+        "El documento ya está registrado. Por favor ingrese uno nuevo."
+      );
+    } else if (telefono && !/^\d+$/.test(telefono)) {
+      mostrarError("El teléfono no puede contener letras ni espacios.");
+    } else if (documento && !/^\d+$/.test(documento)) {
+      mostrarError("El documento no puede contener letras.");
+    } else {
+      setError("");
+    }
+  }, [email, documento, telefono, emails, documentos]);
 
   const mostrarError = (errorMessage) => {
     setError(errorMessage);
+    setTimeout(() => {
+      setError("");
+    }, 5000);
   };
 
   const onSubmitPersonalData = async (data) => {
@@ -60,22 +99,22 @@ function Register() {
       const { username, password, repeatpassword, ...personalData } = data;
 
       if (username === "" || password === "" || repeatpassword === "") {
-        setError("Todos los campos son obligatorios");
+        mostrarError("Todos los campos son obligatorios");
         return;
       }
 
       if (password !== repeatpassword) {
-        setError("Las contraseñas no coinciden");
+        mostrarError("Las contraseñas no coinciden");
         return;
       }
 
       if (username.length < 4) {
-        setError("El nombre de usuario debe tener al menos 4 caracteres");
+        mostrarError("El nombre de usuario debe tener al menos 4 caracteres");
         return;
       }
 
       if (password.length < 8) {
-        setError("La contraseña debe tener al menos 8 caracteres");
+        mostrarError("La contraseña debe tener al menos 8 caracteres");
         return;
       }
       const response = await fetch("http://localhost:3000/usuarios/registrar", {
@@ -100,7 +139,7 @@ function Register() {
         });
       } else {
         const errorData = await response.json();
-        setError(errorData.message);
+        mostrarError(errorData.message);
       }
     } catch (error) {
       mostrarError(error.message);

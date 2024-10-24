@@ -2,7 +2,11 @@ import { CreateCitaMedicaDto } from './dto/create-cita-medica.dto';
 import { CitaMedica } from './entities/cita-medica.entity'; // Asegúrate de tener la entidad importada
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EspecialidadMedica } from 'src/usuarios/entities/especialidad_medica.entity';
 import { Doctor } from 'src/usuarios/entities/doctor.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
@@ -292,7 +296,7 @@ export class CitaMedicaService {
       const doc = await this.doctorRepository.findOneBy({ id_doctor });
 
       if (citas.length === 0) {
-        throw new BadRequestException('El doctor no tiene citas médicas');
+        throw new NotFoundException('El doctor no tiene citas médicas');
       }
 
       // Obtener todos los usuarios, doctores y especialidades
@@ -343,6 +347,9 @@ export class CitaMedicaService {
 
       return citasFiltradas;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException(error.message);
     }
   }

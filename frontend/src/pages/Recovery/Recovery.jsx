@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo_moon-medical.png";
@@ -14,15 +14,10 @@ function Recovery() {
 
   const mostrarError = (errorMessage) => {
     setError(errorMessage);
+    setTimeout(() => {
+      setError("");
+    }, 5000);
   };
-
-  useEffect(() => {
-    if (error) {
-      setTimeout(() => {
-        setError("");
-      }, 3000);
-    }
-  }, [error]);
 
   const onSubmitEmail = async (data) => {
     try {

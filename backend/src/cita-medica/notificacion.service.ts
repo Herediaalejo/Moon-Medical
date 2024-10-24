@@ -37,6 +37,8 @@ export class NotificacionService {
         id_usuario: id_usuario,
       });
 
+      console.log(notificaciones);
+
       if (notificaciones.length === 0) {
         throw new NotFoundException(
           'No se encontraron notificaciones para este usuario.',
@@ -45,6 +47,9 @@ export class NotificacionService {
 
       return notificaciones; // Devuelve las notificaciones encontradas
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException(error.message);
     }
   }

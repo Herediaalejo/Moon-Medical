@@ -92,7 +92,7 @@
 
 .register__input {
   width: 14rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.6rem;
   background-color: #fff;
@@ -218,7 +218,7 @@
 .error {
   visibility: hidden; /* Inicialmente oculto */
   width: 100%;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: red;
   padding: 0.5rem;
@@ -232,6 +232,10 @@
 .error.visible {
   visibility: visible;
   opacity: 1;
+}
+
+.hidden {
+  display: none;
 }
 
 @media (min-width: 1400px) {
